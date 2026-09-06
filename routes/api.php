@@ -10,6 +10,10 @@ use App\Http\Controllers\OrdenController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\RepuestoController;
 use App\Http\Controllers\CotizacionController;
+use App\Http\Controllers\AsignacionController;
+use App\Http\Controllers\ReparacionController;
+use App\Http\Controllers\FotografiaController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -25,4 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('diagnosticos', DiagnosticoController::class);
     Route::apiResource('repuestos', RepuestoController::class);
     Route::apiResource('cotizaciones', CotizacionController::class);
+    Route::apiResource('asignaciones', AsignacionController::class);
+    Route::apiResource('reparaciones', ReparacionController::class);
+    Route::apiResource('fotografias', FotografiaController::class)->except(['update']);
 });

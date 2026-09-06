@@ -1,26 +1,10 @@
-### Crear repuesto
-POST http://localhost/api/repuestos
-Content-Type: application/json
-Accept: application/json
-Authorization: Bearer {{token}}
-
-{
-    "nombre": "Empaque de culata",
-    "descripcion": "Empaque original Kenworth T680",
-    "precio_referencia": 250000,
-    "unidad_medida": "unidad"
-}
-
-### Crear cotizacion
-POST http://localhost/api/cotizaciones
+### Crear reparacion SIN foto (debe fallar)
+POST http://localhost/api/reparaciones
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
 {
     "orden_id": 1,
-    "items": [
-        { "tipo": "mano_obra", "descripcion": "Cambio de empaque de culata", "cantidad": 1, "precio_unitario": 300000 },
-        { "tipo": "repuesto", "descripcion": "Empaque de culata", "cantidad": 1, "precio_unitario": 250000, "repuesto_id": 1 }
-    ]
+    "trabajo_realizado": "Prueba sin foto"
 }
