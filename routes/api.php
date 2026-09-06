@@ -6,6 +6,7 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\InspeccionController;
+use App\Http\Controllers\OrdenController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -17,4 +18,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('vehiculos', VehiculoController::class);
     Route::apiResource('ingresos', IngresoController::class);
     Route::apiResource('inspecciones', InspeccionController::class);
+    Route::apiResource('ordenes', OrdenController::class);
 });

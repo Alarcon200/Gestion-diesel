@@ -9,13 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('diagnosticos', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+     public function up(): void
+{
+    Schema::create('diagnosticos', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('orden_id')->constrained('ordenes');
+        $table->foreignId('usuario_id')->constrained('usuarios');
+        $table->text('problema_encontrado');
+        $table->text('causa_probable')->nullable();
+        $table->text('trabajo_a_realizar');
+        $table->text('recomendaciones')->nullable();
+        $table->timestamp('fecha');
+    });
+}
 
     /**
      * Reverse the migrations.
