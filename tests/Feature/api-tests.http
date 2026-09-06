@@ -1,24 +1,26 @@
-### Login
-POST http://localhost/api/login
-Content-Type: application/json
-Accept: application/json
-
-{
-    "email": "admin@gestiondiesel.com",
-    "password": "password123"
-}
-
-> {%
-    client.global.set("token", response.body.token);
-%}
-
-### Crear orden
-POST http://localhost/api/ordenes
+### Crear repuesto
+POST http://localhost/api/repuestos
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
 {
-    "ingreso_id": 1,
-    "vehiculo_id": 1
+    "nombre": "Empaque de culata",
+    "descripcion": "Empaque original Kenworth T680",
+    "precio_referencia": 250000,
+    "unidad_medida": "unidad"
+}
+
+### Crear cotizacion
+POST http://localhost/api/cotizaciones
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "orden_id": 1,
+    "items": [
+        { "tipo": "mano_obra", "descripcion": "Cambio de empaque de culata", "cantidad": 1, "precio_unitario": 300000 },
+        { "tipo": "repuesto", "descripcion": "Empaque de culata", "cantidad": 1, "precio_unitario": 250000, "repuesto_id": 1 }
+    ]
 }

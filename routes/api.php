@@ -7,6 +7,9 @@ use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\IngresoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\OrdenController;
+use App\Http\Controllers\DiagnosticoController;
+use App\Http\Controllers\RepuestoController;
+use App\Http\Controllers\CotizacionController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -19,4 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('ingresos', IngresoController::class);
     Route::apiResource('inspecciones', InspeccionController::class);
     Route::apiResource('ordenes', OrdenController::class);
+    Route::apiResource('diagnosticos', DiagnosticoController::class);
+    Route::apiResource('repuestos', RepuestoController::class);
+    Route::apiResource('cotizaciones', CotizacionController::class);
 });
