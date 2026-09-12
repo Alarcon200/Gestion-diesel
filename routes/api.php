@@ -13,6 +13,10 @@ use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\ReparacionController;
 use App\Http\Controllers\FotografiaController;
+use App\Http\Controllers\SolicitudRepuestoController;
+use App\Http\Controllers\PruebaController;
+use App\Http\Controllers\InformeServicioController;
+
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,4 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('asignaciones', AsignacionController::class);
     Route::apiResource('reparaciones', ReparacionController::class);
     Route::apiResource('fotografias', FotografiaController::class)->except(['update']);
+    Route::apiResource('solicitudes-repuestos', SolicitudRepuestoController::class)->parameters(['solicitudes-repuestos' => 'solicitudesRepuesto']);
+    Route::apiResource('pruebas', PruebaController::class)->parameters(['pruebas' => 'prueba']);
+    Route::apiResource('informes-servicio', InformeServicioController::class)->parameters(['informes-servicio' => 'informesServicio'])->except(['update']);
+    Route::get('informes-servicio/{informesServicio}/pdf', [InformeServicioController::class, 'pdf']);
 });

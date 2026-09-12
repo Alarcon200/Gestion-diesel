@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        h1 { font-size: 18px; }
+        h2 { font-size: 14px; margin-top: 20px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        .info-box { margin-bottom: 15px; }
+        .fotos { display: flex; flex-wrap: wrap; }
+        .foto-item { width: 150px; margin: 5px; text-align: center; }
+        .foto-item img { width: 140px; height: 100px; object-fit: cover; border: 1px solid #ddd; }
+        .reparacion { margin-bottom: 20px; page-break-inside: avoid; }
+    </style>
+</head>
+<body>
+    <h1>Informe de Servicio - {{ $orden->numero_orden }}</h1>
+
+    <div class="info-box">
+        <strong>Vehiculo:</strong> {{ $orden->vehiculo->placa }} - {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }}<br>
+        <strong>Cliente:</strong> {{ $orden->vehiculo->cliente->nombre }}<br>
+        <strong>Fecha de generacion:</strong> {{ $informe->fecha_generacion }}<br>
+        <strong>Valor del servicio:</strong> ${{ number_format($informe->valor_servicio, 0, ',', '.') }}
+    </div>
+
+    <h2>Diagnostico</h2>
+    @foreach($orden->diagnosticos as $diagnostico)
+        <p><strong>Problema:</strong> {{ $diagnostico->problema_encontrado }}</p>
+        <p><strong>Trabajo a realizar:</strong> {{ $diagnostico->trabajo_a_realizar }}</p>
+    @endforeach
+
+    <h2>Reparaciones realizadas</h2>
+    @foreach($orden->reparaciones as $reparacion)
+        <div class="reparacion">
+            <p><strong>Mecanico:</strong> {{ $reparacion->mecanico->nombre }} {{ $reparacion->mecanico->apellido }}</p>
+            <p><strong>Trabajo realizado:</strong> {{ $reparacion->trabajo_realizado }}</p>
+            @if($reparacion->observaciones)
+                <p><strong>Observaciones:</strong> {{ $reparacion->observaciones }}</p>
+            @endif
+
+            <div class="fotos">
+                @foreach($reparacion->fotografias as $foto)
+                    <div class="foto-item">
+                        <img src="{{ storage_path('app/public/' . $foto->ruta_archivo) }}">
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endforeach
+
+    <h2>Pruebas de calidad</h2>
+    @foreach($orden->pruebas as $prueba)
+        <p><strong>{{ $prueba->prueba_realizada }}:</strong> {{ $prueba->resultado }}</p>
+        @if($prueba->observaciones)
+            <p>{{ $prueba->observaciones }}</p>
+        @endif
+    @endforeach
+
+    @if($informe->observaciones_finales)
+        <h2>Observaciones finales</h2>
+        <p>{{ $informe->observaciones_finales }}</p>
+    @endif
+</body>
+</html>

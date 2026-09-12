@@ -8,7 +8,7 @@ class SolicitudRepuesto extends Model
 {
     protected $table = 'solicitudes_repuestos';
     public $timestamps = false;
-    protected $fillable = ['orden_id', 'mecanico_id', 'mensajero_id', 'repuesto_id', 'cantidad', 'estado', 'fecha_solicitud', 'fecha_entrega'];
+    protected $fillable = ['orden_id', 'mecanico_id', 'mensajero_id', 'repuesto_id', 'cantidad', 'estado', 'fecha_solicitud', 'fecha_entrega', 'precio_compra', 'lugar_compra'];
 
     public function orden()
     {

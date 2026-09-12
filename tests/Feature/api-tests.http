@@ -1,10 +1,23 @@
-### Crear reparacion SIN foto (debe fallar)
-POST http://localhost/api/reparaciones
+### Autorizar cotizacion
+PUT http://localhost/api/cotizaciones/1
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{token}}
+
+{
+    "estado": "autorizada"
+}
+
+### Generar informe de servicio
+POST http://localhost/api/informes-servicio
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer {{token}}
 
 {
     "orden_id": 1,
-    "trabajo_realizado": "Prueba sin foto"
+    "observaciones_finales": "Vehiculo entregado en buen estado, todas las pruebas satisfactorias"
 }
+### Descargar PDF del informe
+GET http://localhost/api/informes-servicio/1/pdf
+Authorization: Bearer {{token}}
