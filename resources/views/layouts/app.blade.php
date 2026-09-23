@@ -20,6 +20,8 @@
                 <a href="/ingresos" class="hover:underline">Ingresos</a>
                 <a href="/diagnosticos" class="hover:underline">Diagnosticos</a>
                 <a href="/cotizaciones" class="hover:underline">Cotizaciones</a>
+                <a href="/usuarios" class="hover:underline">Personal</a>
+                <a href="/asignaciones" class="hover:underline">Asignaciones</a>
                 <span class="text-gray-300">{{ session('usuario_nombre') }} ({{ session('usuario_rol') }})</span>
                 <a href="/logout" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700">Salir</a>
             </div>

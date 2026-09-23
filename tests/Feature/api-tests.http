@@ -1,23 +1,15 @@
-### Autorizar cotizacion
-PUT http://localhost/api/cotizaciones/1
+POST http://localhost/api/login
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer {{token}}
 
 {
-    "estado": "autorizada"
+    "email": "admin@gestiondiesel.com",
+    "password": "password123"
 }
 
-### Generar informe de servicio
-POST http://localhost/api/informes-servicio
-Content-Type: application/json
+### Obtener mis trabajos asignados
+
+### Obtener mis trabajos asignados
+GET http://localhost/api/mis-trabajos
 Accept: application/json
-Authorization: Bearer {{token}}
-
-{
-    "orden_id": 1,
-    "observaciones_finales": "Vehiculo entregado en buen estado, todas las pruebas satisfactorias"
-}
-### Descargar PDF del informe
-GET http://localhost/api/informes-servicio/1/pdf
-Authorization: Bearer {{token}}
+Authorization: Bearer 14|TUB4dxPsB6AiGSvcNyl2UXwRxXs2doJiWNm2rvbnbc3da395

@@ -58,4 +58,10 @@ class Orden extends Model
     {
         return $this->hasOne(InformeServicio::class);
     }
+
+    public function mecanico()
+    {
+        // Le indicamos a Laravel que 'mecanico_id' se conecta con el modelo Usuario
+        return $this->belongsTo(Usuario::class, 'mecanico_id');
+    }
 }

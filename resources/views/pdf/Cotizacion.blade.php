@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,11 +17,14 @@
     </style>
 </head>
 <body>
-    <h1>Cotizacion - {{ $cotizacion->orden->numero_orden }}</h1>
+    <h1>Cotizacion - {{ $cotizacion->orden->numero_orden ?? 'Sin orden asignada' }}</h1>
 
     <div class="info-box">
-        <strong>Vehiculo:</strong> {{ $cotizacion->orden->vehiculo->placa }} - {{ $cotizacion->orden->vehiculo->marca }} {{ $cotizacion->orden->vehiculo->modelo }}<br>
-        <strong>Cliente:</strong> {{ $cotizacion->orden->vehiculo->cliente->nombre }}<br>
+        @php
+            $vehiculo = $cotizacion->orden->vehiculo ?? $cotizacion->vehiculo ?? null;
+        @endphp
+        <strong>Vehiculo:</strong> {{ $vehiculo->placa ?? '-' }} - {{ $vehiculo->marca ?? '' }} {{ $vehiculo->modelo ?? '' }}<br>
+        <strong>Cliente:</strong> {{ $vehiculo->cliente->nombre ?? '-' }}<br>
         <strong>Fecha:</strong> {{ \Carbon\Carbon::parse($cotizacion->fecha_creacion)->format('d/m/Y') }}<br>
         <strong>Estado:</strong> {{ ucfirst($cotizacion->estado) }}
     </div>

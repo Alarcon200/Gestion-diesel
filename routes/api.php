@@ -1,7 +1,13 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
+
+// Nuestro controlador de API para el login
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\TrabajoController;
+
+// Controladores Base
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\IngresoController;
@@ -17,11 +23,24 @@ use App\Http\Controllers\SolicitudRepuestoController;
 use App\Http\Controllers\PruebaController;
 use App\Http\Controllers\InformeServicioController;
 
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+// Nuestra ruta para que el celular inicie sesión
 Route::post('/login', [AuthController::class, 'login']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/me', [AuthController::class, 'me']);
+    
+    // Nuestra nueva ruta para la app móvil
+    Route::get('/mis-trabajos', [TrabajoController::class, 'misTrabajos']); // <-- AGREGAR ESTA LÍNEA
 
     // Administrador y Jefe de taller: acceso total
     Route::middleware('role:Administrador,Jefe de taller')->group(function () {
@@ -72,4 +91,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('solicitudes-repuestos/{solicitudesRepuesto}', [SolicitudRepuestoController::class, 'show']);
         Route::put('solicitudes-repuestos/{solicitudesRepuesto}', [SolicitudRepuestoController::class, 'update']);
     });
+});
 });

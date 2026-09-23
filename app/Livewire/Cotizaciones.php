@@ -6,14 +6,29 @@ use Livewire\Component;
 use App\Models\Cotizacion;
 use App\Models\CotizacionDetalle;
 use App\Models\Orden;
+use App\Models\Vehiculo;
+use App\Models\Cliente;
 use Illuminate\Support\Facades\DB;
 
 class Cotizaciones extends Component
 {
+    // Propiedades de la cotización
     public $orden_id = '';
+    public $vehiculo_id = '';
     public $items = [];
     public $editando_id = null;
     public $mostrar_formulario = false;
+    public $vinculando_id = null;
+    public $orden_a_vincular = '';
+
+    // Propiedades para el formulario modal/desplegable de vehículos
+    public $mostrar_form_vehiculo = false;
+    public $nuevo_placa = '';
+    public $nuevo_marca = '';
+    public $nuevo_modelo = '';
+    public $nuevo_anio = '';
+    public $nuevo_tipo = '';
+    public $nuevo_cliente_id = '';
 
     public function mount()
     {
@@ -39,6 +54,8 @@ class Cotizaciones extends Component
     {
         $this->editando_id = null;
         $this->orden_id = '';
+        $this->vehiculo_id = '';
+        $this->mostrar_form_vehiculo = false;
         $this->items = [$this->itemVacio()];
         $this->mostrar_formulario = true;
     }
@@ -48,7 +65,9 @@ class Cotizaciones extends Component
         $cotizacion = Cotizacion::with('detalles')->findOrFail($id);
 
         $this->editando_id = $cotizacion->id;
-        $this->orden_id = $cotizacion->orden_id;
+        $this->orden_id = $cotizacion->orden_id ?? '';
+        $this->vehiculo_id = $cotizacion->vehiculo_id ?? '';
+        $this->mostrar_form_vehiculo = false;
         $this->items = $cotizacion->detalles->map(function ($detalle) {
             return [
                 'tipo' => $detalle->tipo,
@@ -66,6 +85,41 @@ class Cotizaciones extends Component
         }
 
         $this->mostrar_formulario = true;
+    }
+
+    public function mostrarFormVehiculo()
+    {
+        $this->reset(['nuevo_placa', 'nuevo_marca', 'nuevo_modelo', 'nuevo_anio', 'nuevo_tipo', 'nuevo_cliente_id']);
+        $this->mostrar_form_vehiculo = true;
+    }
+
+    public function cancelarFormVehiculo()
+    {
+        $this->mostrar_form_vehiculo = false;
+    }
+
+    public function guardarVehiculoNuevo()
+    {
+        $this->validate([
+            'nuevo_placa' => 'required|string|max:15|unique:vehiculos,placa',
+            'nuevo_marca' => 'nullable|string|max:50',
+            'nuevo_modelo' => 'nullable|string|max:50',
+            'nuevo_anio' => 'nullable|integer',
+            'nuevo_tipo' => 'nullable|string|max:50',
+            'nuevo_cliente_id' => 'required|exists:clientes,id',
+        ]);
+
+        $vehiculo = Vehiculo::create([
+            'placa' => strtoupper($this->nuevo_placa),
+            'marca' => $this->nuevo_marca,
+            'modelo' => $this->nuevo_modelo,
+            'anio' => $this->nuevo_anio ?: null,
+            'tipo' => $this->nuevo_tipo,
+            'cliente_id' => $this->nuevo_cliente_id,
+        ]);
+
+        $this->vehiculo_id = $vehiculo->id;
+        $this->mostrar_form_vehiculo = false;
     }
 
     public function agregarItem()
@@ -103,7 +157,8 @@ class Cotizaciones extends Component
             ->all();
 
         $this->validate([
-            'orden_id' => 'required|exists:ordenes,id',
+            'orden_id' => 'nullable|exists:ordenes,id',
+            'vehiculo_id' => 'nullable|exists:vehiculos,id',
             'items' => 'required|array|min:1',
             'items.*.tipo' => 'required|in:mano_obra,repuesto,servicio',
             'items.*.descripcion' => 'required|string|max:200',
@@ -128,7 +183,8 @@ class Cotizaciones extends Component
             }
 
             $datosCotizacion = [
-                'orden_id' => $this->orden_id,
+                'orden_id' => $this->orden_id ?: null,
+                'vehiculo_id' => $this->orden_id ? null : ($this->vehiculo_id ?: null),
                 'subtotal_mano_obra' => $subtotalManoObra,
                 'subtotal_repuestos' => $subtotalRepuestos,
                 'total' => $subtotalManoObra + $subtotalRepuestos,
@@ -162,6 +218,33 @@ class Cotizaciones extends Component
         $this->editando_id = null;
     }
 
+    public function mostrarVincular($id)
+    {
+        $this->vinculando_id = $id;
+        $this->orden_a_vincular = '';
+    }
+
+    public function vincular()
+    {
+        $this->validate([
+            'orden_a_vincular' => 'required|exists:ordenes,id',
+        ]);
+
+        Cotizacion::find($this->vinculando_id)->update([
+            'orden_id' => $this->orden_a_vincular,
+            'vehiculo_id' => null,
+        ]);
+
+        $this->vinculando_id = null;
+        $this->orden_a_vincular = '';
+    }
+
+    public function cancelarVincular()
+    {
+        $this->vinculando_id = null;
+        $this->orden_a_vincular = '';
+    }
+
     public function autorizar($id)
     {
         Cotizacion::find($id)->update(['estado' => 'autorizada', 'fecha_respuesta' => now()]);
@@ -181,8 +264,10 @@ class Cotizaciones extends Component
     public function render()
     {
         return view('livewire.cotizaciones', [
-            'cotizaciones' => Cotizacion::with('orden.vehiculo.cliente', 'usuario', 'detalles')->orderByDesc('fecha_creacion')->get(),
+            'cotizaciones' => Cotizacion::with('orden.vehiculo.cliente', 'vehiculo.cliente', 'usuario', 'detalles')->orderByDesc('fecha_creacion')->get(),
             'ordenes' => Orden::with('vehiculo')->orderByDesc('fecha_creacion')->get(),
+            'vehiculos' => Vehiculo::with('cliente')->orderBy('placa')->get(),
+            'clientes' => Cliente::orderBy('nombre')->get(),
         ])->layout('layouts.app');
     }
 }

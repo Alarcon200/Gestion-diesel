@@ -10,19 +10,19 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('vehiculos', function (Blueprint $table) {
-        $table->id();
-        $table->string('placa', 15)->unique();
-        $table->string('marca', 50)->nullable();
-        $table->string('modelo', 50)->nullable();
-        $table->smallInteger('anio')->nullable();
-        $table->string('tipo', 50)->nullable();
-        $table->integer('kilometraje')->nullable();
-        $table->foreignId('cliente_id')->constrained('clientes');
-        $table->timestamps();
-    });
-}
+    {
+        Schema::createIfNotExists('vehiculos', function (Blueprint $table) {
+            $table->id();
+            $table->string('placa', 15)->unique();
+            $table->string('marca', 50)->nullable();
+            $table->string('modelo', 50)->nullable();
+            $table->smallInteger('anio')->nullable();
+            $table->string('tipo', 50)->nullable();
+            $table->integer('kilometraje')->nullable();
+            $table->foreignId('cliente_id')->constrained('clientes');
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

@@ -8,11 +8,16 @@ class Cotizacion extends Model
 {
     protected $table = 'cotizaciones';
     public $timestamps = false;
-    protected $fillable = ['orden_id', 'usuario_id', 'subtotal_mano_obra', 'subtotal_repuestos', 'total', 'estado', 'fecha_creacion', 'fecha_respuesta'];
+    protected $fillable = ['orden_id', 'vehiculo_id', 'usuario_id', 'subtotal_mano_obra', 'subtotal_repuestos', 'total', 'estado', 'fecha_creacion', 'fecha_respuesta'];
 
     public function orden()
     {
         return $this->belongsTo(Orden::class);
+    }
+
+    public function vehiculo()
+    {
+        return $this->belongsTo(Vehiculo::class);
     }
 
     public function usuario()
