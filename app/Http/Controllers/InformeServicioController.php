@@ -18,19 +18,18 @@ class InformeServicioController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'orden_id' => 'required|exists:ordenes,id',
+            'ingreso_id' => 'required|exists:ingresos,id',
+            'valor_servicio' => 'nullable|numeric',
             'observaciones_finales' => 'nullable|string',
         ]);
 
-        $orden = Orden::with('cotizaciones', 'diagnosticos', 'reparaciones.fotografias', 'pruebas')
-            ->findOrFail($data['orden_id']);
-
-        $cotizacionAutorizada = $orden->cotizaciones->firstWhere('estado', 'autorizada');
+        $orden = Orden::obtenerOCrearParaIngreso($data['ingreso_id'], $request->user()->id);
+        $orden->load('diagnosticos', 'reparaciones.fotografias', 'pruebas');
 
         $informe = InformeServicio::create([
             'orden_id' => $orden->id,
             'usuario_id' => $request->user()->id,
-            'valor_servicio' => $cotizacionAutorizada->total ?? 0,
+            'valor_servicio' => $data['valor_servicio'] ?? 0,
             'observaciones_finales' => $data['observaciones_finales'] ?? null,
             'fecha_generacion' => now(),
         ]);
@@ -45,7 +44,6 @@ class InformeServicioController extends Controller
                 'diagnosticos' => $orden->diagnosticos,
                 'reparaciones' => $orden->reparaciones,
                 'pruebas' => $orden->pruebas,
-                'valor_total' => $cotizacionAutorizada->total ?? 0,
             ],
         ], 201);
     }
@@ -56,8 +54,7 @@ class InformeServicioController extends Controller
             'vehiculo.cliente',
             'diagnosticos',
             'reparaciones.fotografias',
-            'pruebas',
-            'cotizaciones'
+            'pruebas'
         )->first();
 
         return [

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Reparacion;
 use App\Models\ReparacionRepuesto;
+use App\Models\Orden;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class ReparacionController extends Controller
 {
@@ -20,7 +20,7 @@ class ReparacionController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'orden_id' => 'nullable|exists:ordenes,id',
+            'ingreso_id' => 'nullable|exists:ingresos,id',
             'trabajo_realizado' => 'required|string',
             'observaciones' => 'nullable|string',
             'repuestos' => 'nullable|array',
@@ -34,8 +34,14 @@ class ReparacionController extends Controller
         ]);
 
         $reparacion = DB::transaction(function () use ($data, $request) {
+            $ordenId = null;
+            if (!empty($data['ingreso_id'])) {
+                $orden = Orden::obtenerOCrearParaIngreso($data['ingreso_id'], $request->user()->id);
+                $ordenId = $orden->id;
+            }
+
             $reparacion = Reparacion::create([
-                'orden_id' => $data['orden_id'] ?? null,
+                'orden_id' => $ordenId,
                 'mecanico_id' => $request->user()->id,
                 'trabajo_realizado' => $data['trabajo_realizado'],
                 'observaciones' => $data['observaciones'] ?? null,

@@ -23,9 +23,13 @@ class Ingreso extends Model
     {
         return $this->hasMany(Inspeccion::class);
     }
+   public function ordenes()
+   {
+    return $this->hasMany(Orden::class);
+   }
 
-    public function ordenes()
-    {
-        return $this->hasMany(Orden::class);
-    }
+   public function historial()
+{
+    return $this->hasMany(HistorialEstadoIngreso::class)->orderBy('fecha');
+}
 }

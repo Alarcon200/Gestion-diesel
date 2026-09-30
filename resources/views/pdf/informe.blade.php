@@ -20,7 +20,7 @@
         <strong>Vehiculo:</strong> {{ $orden->vehiculo->placa }} - {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }}<br>
         <strong>Cliente:</strong> {{ $orden->vehiculo->cliente->nombre }}<br>
         <strong>Fecha de generacion:</strong> {{ $informe->fecha_generacion }}<br>
-        <strong>Valor del servicio:</strong> ${{ number_format($informe->valor_servicio, 0, ',', '.') }}
+        
     </div>
 
     <h2>Diagnostico</h2>

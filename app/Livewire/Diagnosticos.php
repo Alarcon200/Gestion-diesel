@@ -4,11 +4,12 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Diagnostico;
+use App\Models\Ingreso;
 use App\Models\Orden;
 
 class Diagnosticos extends Component
 {
-    public $orden_id = '';
+    public $ingreso_id = '';
     public $problema_encontrado = '';
     public $causa_probable = '';
     public $trabajo_a_realizar = '';
@@ -16,11 +17,9 @@ class Diagnosticos extends Component
     public $mostrar_formulario = false;
 
     protected $rules = [
-        'orden_id' => 'required|exists:ordenes,id',
+        'ingreso_id' => 'required|exists:ingresos,id',
         'problema_encontrado' => 'required|string',
-        'causa_probable' => 'nullable|string',
         'trabajo_a_realizar' => 'required|string',
-        'recomendaciones' => 'nullable|string',
     ];
 
     public function mount()
@@ -40,8 +39,10 @@ class Diagnosticos extends Component
     {
         $this->validate();
 
+        $orden = Orden::obtenerOCrearParaIngreso($this->ingreso_id, session('usuario_id'));
+
         Diagnostico::create([
-            'orden_id' => $this->orden_id,
+            'orden_id' => $orden->id,
             'usuario_id' => session('usuario_id'),
             'problema_encontrado' => $this->problema_encontrado,
             'causa_probable' => $this->causa_probable,
@@ -62,7 +63,7 @@ class Diagnosticos extends Component
 
     private function resetForm()
     {
-        $this->reset(['orden_id', 'problema_encontrado', 'causa_probable', 'trabajo_a_realizar', 'recomendaciones']);
+        $this->reset(['ingreso_id', 'problema_encontrado', 'causa_probable', 'trabajo_a_realizar', 'recomendaciones']);
         $this->resetValidation();
     }
 
@@ -70,7 +71,7 @@ class Diagnosticos extends Component
     {
         return view('livewire.diagnosticos', [
             'diagnosticos' => Diagnostico::with('orden.vehiculo.cliente', 'usuario')->orderByDesc('fecha')->get(),
-            'ordenes' => Orden::with('vehiculo')->orderByDesc('fecha_creacion')->get(),
+            'ingresos' => Ingreso::with('vehiculo')->orderByDesc('fecha_ingreso')->get(),
         ])->layout('layouts.app');
     }
 }

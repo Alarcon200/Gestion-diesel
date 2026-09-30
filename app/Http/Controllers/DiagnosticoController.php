@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Diagnostico;
+use App\Models\Orden;
 
 class DiagnosticoController extends Controller
 {
@@ -17,17 +18,24 @@ class DiagnosticoController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'orden_id' => 'required|exists:ordenes,id',
+            'ingreso_id' => 'required|exists:ingresos,id',
             'problema_encontrado' => 'required|string',
             'causa_probable' => 'nullable|string',
             'trabajo_a_realizar' => 'required|string',
             'recomendaciones' => 'nullable|string',
         ]);
 
-        $data['usuario_id'] = $request->user()->id;
-        $data['fecha'] = now();
+        $orden = Orden::obtenerOCrearParaIngreso($data['ingreso_id'], $request->user()->id);
 
-        $diagnostico = Diagnostico::create($data);
+        $diagnostico = Diagnostico::create([
+            'orden_id' => $orden->id,
+            'usuario_id' => $request->user()->id,
+            'problema_encontrado' => $data['problema_encontrado'],
+            'causa_probable' => $data['causa_probable'] ?? null,
+            'trabajo_a_realizar' => $data['trabajo_a_realizar'],
+            'recomendaciones' => $data['recomendaciones'] ?? null,
+            'fecha' => now(),
+        ]);
 
         return response()->json($diagnostico->load('orden.vehiculo.cliente', 'usuario'), 201);
     }

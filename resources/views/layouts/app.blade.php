@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestion Diesel</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,10 +17,8 @@
                 <a href="/panel" class="hover:underline">Panel</a>
                 <a href="/clientes" class="hover:underline">Clientes</a>
                 <a href="/vehiculos" class="hover:underline">Vehiculos</a>
-                <a href="/ordenes" class="hover:underline">Ordenes</a>
                 <a href="/ingresos" class="hover:underline">Ingresos</a>
                 <a href="/diagnosticos" class="hover:underline">Diagnosticos</a>
-                <a href="/cotizaciones" class="hover:underline">Cotizaciones</a>
                 <a href="/usuarios" class="hover:underline">Personal</a>
                 <a href="/asignaciones" class="hover:underline">Asignaciones</a>
                 <span class="text-gray-300">{{ session('usuario_nombre') }} ({{ session('usuario_rol') }})</span>

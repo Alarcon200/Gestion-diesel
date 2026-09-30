@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Inspeccion;
 use App\Models\InspeccionDetalle;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class InspeccionController extends Controller
 {
@@ -16,48 +17,58 @@ class InspeccionController extends Controller
             ->get();
     }
 
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'ingreso_id' => 'required|exists:ingresos,id',
-            'fecha_inspeccion' => 'required|date',
-            'estado_general' => 'nullable|string|max:50',
-            'nivel_combustible' => 'nullable|string|max:20',
-            'kilometraje' => 'nullable|integer',
-            'observaciones' => 'nullable|string',
-            'items' => 'nullable|array',
-            'items.*.item' => 'required_with:items|string|max:60',
-            'items.*.estado' => 'required_with:items|string|max:30',
-            'items.*.observacion' => 'nullable|string|max:200',
+  public function store(Request $request)
+{
+    $data = $request->validate([
+        'ingreso_id' => 'required|exists:ingresos,id',
+        'fecha_inspeccion' => 'required|date',
+        'estado_general' => 'nullable|string|max:50',
+        'nivel_combustible' => 'nullable|string|max:20',
+        'kilometraje' => 'nullable|integer',
+        'observaciones' => 'nullable|string',
+        'items' => 'nullable|array',
+        'items.*.item' => 'required_with:items|string|max:60',
+        'items.*.estado' => 'required_with:items|string|max:30',
+        'items.*.observacion' => 'nullable|string|max:200',
+        'fotos_ids' => 'nullable|array',
+        'fotos_ids.*' => 'exists:fotografias,id',
+    ]);
+
+    $inspeccion = DB::transaction(function () use ($data, $request) {
+        $inspeccion = Inspeccion::create([
+            'ingreso_id' => $data['ingreso_id'],
+            'usuario_id' => $request->user()->id,
+            'fecha_inspeccion' => $data['fecha_inspeccion'],
+            'estado_general' => $data['estado_general'] ?? null,
+            'nivel_combustible' => $data['nivel_combustible'] ?? null,
+            'kilometraje' => $data['kilometraje'] ?? null,
+            'observaciones' => $data['observaciones'] ?? null,
         ]);
 
-        $inspeccion = DB::transaction(function () use ($data, $request) {
-            $inspeccion = Inspeccion::create([
-                'ingreso_id' => $data['ingreso_id'],
-                'usuario_id' => $request->user()->id,
-                'fecha_inspeccion' => $data['fecha_inspeccion'],
-                'estado_general' => $data['estado_general'] ?? null,
-                'nivel_combustible' => $data['nivel_combustible'] ?? null,
-                'kilometraje' => $data['kilometraje'] ?? null,
-                'observaciones' => $data['observaciones'] ?? null,
-            ]);
-
-            if (!empty($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    InspeccionDetalle::create([
-                        'inspeccion_id' => $inspeccion->id,
-                        'item' => $item['item'],
-                        'estado' => $item['estado'],
-                        'observacion' => $item['observacion'] ?? null,
-                    ]);
-                }
+        if (!empty($data['items'])) {
+            foreach ($data['items'] as $item) {
+                InspeccionDetalle::create([
+                    'inspeccion_id' => $inspeccion->id,
+                    'item' => $item['item'],
+                    'estado' => $item['estado'],
+                    'observacion' => $item['observacion'] ?? null,
+                ]);
             }
+        }
 
-            return $inspeccion;
-        });
+        if (!empty($data['fotos_ids'])) {
+            \App\Models\Fotografia::whereIn('id', $data['fotos_ids'])
+                ->update([
+                    'fotografiable_id' => $inspeccion->id,
+                    'fotografiable_type' => Inspeccion::class,
+                ]);
+        }
 
-        return response()->json($inspeccion->load('detalles', 'ingreso.vehiculo', 'usuario'), 201);
-    }
+        return $inspeccion;
+    });
+
+    return response()->json($inspeccion->load('detalles', 'ingreso.vehiculo', 'usuario', 'fotografias'), 201);
+}
 
     public function show(Inspeccion $inspeccion)
     {

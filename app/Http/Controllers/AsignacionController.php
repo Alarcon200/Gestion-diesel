@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Asignacion;
+use App\Models\Orden;
 
 class AsignacionController extends Controller
 {
@@ -17,14 +18,18 @@ class AsignacionController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'orden_id' => 'required|exists:ordenes,id',
+            'ingreso_id' => 'required|exists:ingresos,id',
             'usuario_id' => 'required|exists:usuarios,id',
         ]);
 
-        $data['fecha_asignacion'] = now();
-        $data['estado'] = 'asignado';
+        $orden = Orden::obtenerOCrearParaIngreso($data['ingreso_id'], $request->user()->id);
 
-        $asignacion = Asignacion::create($data);
+        $asignacion = Asignacion::create([
+            'orden_id' => $orden->id,
+            'usuario_id' => $data['usuario_id'],
+            'fecha_asignacion' => now(),
+            'estado' => 'asignado',
+        ]);
 
         return response()->json($asignacion->load('orden.vehiculo', 'usuario'), 201);
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Prueba;
+use App\Models\Orden;
 
 class PruebaController extends Controller
 {
@@ -17,16 +18,22 @@ class PruebaController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'orden_id' => 'required|exists:ordenes,id',
+            'ingreso_id' => 'required|exists:ingresos,id',
             'prueba_realizada' => 'required|string|max:200',
             'resultado' => 'required|in:correcto,con_observaciones',
             'observaciones' => 'nullable|string',
         ]);
 
-        $data['usuario_id'] = $request->user()->id;
-        $data['fecha'] = now();
+        $orden = Orden::obtenerOCrearParaIngreso($data['ingreso_id'], $request->user()->id);
 
-        $prueba = Prueba::create($data);
+        $prueba = Prueba::create([
+            'orden_id' => $orden->id,
+            'usuario_id' => $request->user()->id,
+            'prueba_realizada' => $data['prueba_realizada'],
+            'resultado' => $data['resultado'],
+            'observaciones' => $data['observaciones'] ?? null,
+            'fecha' => now(),
+        ]);
 
         return response()->json($prueba->load('orden.vehiculo', 'usuario'), 201);
     }

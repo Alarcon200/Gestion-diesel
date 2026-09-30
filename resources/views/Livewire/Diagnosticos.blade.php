@@ -12,13 +12,13 @@
         <form wire:submit="guardar">
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Orden</label>
-                <select wire:model="orden_id" class="w-full border rounded px-3 py-2">
-                    <option value="">-- Selecciona una orden --</option>
-                    @foreach($ordenes as $orden)
-                        <option value="{{ $orden->id }}">{{ $orden->numero_orden }} - {{ $orden->vehiculo->placa ?? '-' }}</option>
-                    @endforeach
+                <select wire:model="ingreso_id" class="w-full border rounded px-3 py-2">
+                 <option value="">-- Selecciona un ingreso --</option>
+                 @foreach($ingresos as $ingreso)
+                 <option value="{{ $ingreso->id }}">{{ $ingreso->vehiculo->placa ?? '-' }} - {{ \Carbon\Carbon::parse($ingreso->fecha_ingreso)->format('d/m/Y') }}</option>
+                  @endforeach
                 </select>
-                @error('orden_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                @error('ingreso_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Problema encontrado</label>

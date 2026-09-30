@@ -39,19 +39,24 @@ class IngresoController extends Controller
     }
 
     public function update(Request $request, Ingreso $ingreso)
-    {
-        $data = $request->validate([
-            'conductor' => 'nullable|string|max:120',
-            'motivo' => 'sometimes|required|string|max:200',
-            'kilometraje' => 'nullable|integer',
-            'estado' => 'sometimes|required|string|max:30',
-            'observaciones' => 'nullable|string',
-        ]);
+{
+    $data = $request->validate([
+        'conductor' => 'nullable|string|max:120',
+        'motivo' => 'sometimes|required|string|max:200',
+        'kilometraje' => 'nullable|integer',
+        'estado' => 'sometimes|required|in:en_espera_diagnostico,en_reparacion,pendiente_cotizacion,pendiente_informe,pendiente_prefactura,orden_enviada,salio_taller',
+        'observaciones' => 'nullable|string',
+        'fecha_salida' => 'nullable|date',
+    ]);
 
-        $ingreso->update($data);
-
-        return $ingreso;
+    if (($data['estado'] ?? null) === 'salio_taller' && empty($data['fecha_salida'])) {
+        $data['fecha_salida'] = now();
     }
+
+    $ingreso->update($data);
+
+    return $ingreso->load('vehiculo.cliente', 'usuario');
+}
 
     public function destroy(Ingreso $ingreso)
     {

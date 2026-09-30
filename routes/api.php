@@ -27,6 +27,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::post('/inspecciones', [InspeccionController::class, 'store']);
+
 // Nuestra ruta para que el celular inicie sesión
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -35,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {  
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     
@@ -47,10 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('clientes', ClienteController::class);
         Route::apiResource('vehiculos', VehiculoController::class);
         Route::apiResource('ingresos', IngresoController::class);
-        Route::apiResource('inspecciones', InspeccionController::class);
-        Route::apiResource('ordenes', OrdenController::class);
+        Route::apiResource('inspecciones', InspeccionController::class)->except(['store']);
         Route::apiResource('repuestos', RepuestoController::class);
-        Route::apiResource('cotizaciones', CotizacionController::class);
         Route::apiResource('asignaciones', AsignacionController::class);
         Route::apiResource('informes-servicio', InformeServicioController::class)
             ->parameters(['informes-servicio' => 'informesServicio'])->except(['update']);
@@ -68,7 +68,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('cotizaciones', [CotizacionController::class, 'index']);
         Route::get('cotizaciones/{cotizacion}', [CotizacionController::class, 'show']);
         Route::get('informes-servicio', [InformeServicioController::class, 'index']);
+        Route::get('ingresos/{ingreso}', [IngresoController::class, 'show']);
+        Route::put('ingresos/{ingreso}', [IngresoController::class, 'update']);
         Route::get('informes-servicio/{informesServicio}', [InformeServicioController::class, 'show']);
+        Route::get('ingresos', [IngresoController::class, 'index']);
     });
 
     // Mecanico: diagnosticos, reparaciones, fotos, pruebas, solicitar repuestos
@@ -83,6 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('ordenes', [OrdenController::class, 'index']);
         Route::get('ordenes/{orden}', [OrdenController::class, 'show']);
         Route::get('repuestos', [RepuestoController::class, 'index']);
+        Route::get('ingresos', [IngresoController::class, 'index']);
+        Route::get('ingresos/{ingreso}', [IngresoController::class, 'show']);
+        Route::post('informes-servicio', [InformeServicioController::class, 'store']);
     });
 
     // Mensajero: ver y actualizar solicitudes de repuestos
