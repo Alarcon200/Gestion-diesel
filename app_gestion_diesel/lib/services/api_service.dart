@@ -4,29 +4,40 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // En emulador Android, 10.0.2.2 apunta al localhost de tu Mac
   static const String baseUrl = 'http://10.0.2.2/api';
 
   static String? _token;
+  static String? _rol;
+  static String? _nombre;
 
-  static Future<void> cargarToken() async {
+  static Future<void> cargarSesion() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
+    _rol = prefs.getString('rol');
+    _nombre = prefs.getString('nombre');
   }
 
-  static Future<void> guardarToken(String token) async {
+  static Future<void> guardarSesion(String token, String rol, String nombre) async {
     _token = token;
+    _rol = rol;
+    _nombre = nombre;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
+    await prefs.setString('rol', rol);
+    await prefs.setString('nombre', nombre);
   }
 
   static Future<void> cerrarSesion() async {
     _token = null;
+    _rol = null;
+    _nombre = null;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    await prefs.clear();
   }
 
   static bool get autenticado => _token != null;
+  static String get rol => _rol ?? '';
+  static String get nombre => _nombre ?? '';
 
   static Map<String, String> get _headers => {
         'Accept': 'application/json',
@@ -43,13 +54,15 @@ class ApiService {
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body);
-      await guardarToken(data['token']);
+      final rol = data['usuario']?['rol']?['nombre'] ?? '';
+      final nombre = data['usuario']?['nombre'] ?? '';
+      await guardarSesion(data['token'], rol, nombre);
       return data;
     }
     throw _errorDesdeRespuesta(res);
   }
 
-  static Future<List<dynamic>> get(String endpoint) async {
+  static Future<dynamic> get(String endpoint) async {
     final res = await http.get(Uri.parse('$baseUrl/$endpoint'), headers: _headers);
     if (res.statusCode == 200) return jsonDecode(res.body);
     throw _errorDesdeRespuesta(res);
@@ -65,7 +78,16 @@ class ApiService {
     throw _errorDesdeRespuesta(res);
   }
 
-  /// Sube una foto (multipart) al endpoint /fotografias y devuelve su id
+  static Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> body) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+    if (res.statusCode == 200) return jsonDecode(res.body);
+    throw _errorDesdeRespuesta(res);
+  }
+
   static Future<int> subirFoto(File archivo, {String? descripcion}) async {
     final uri = Uri.parse('$baseUrl/fotografias');
     final request = http.MultipartRequest('POST', uri);
@@ -77,9 +99,7 @@ class ApiService {
     final streamed = await request.send();
     final res = await http.Response.fromStream(streamed);
 
-    if (res.statusCode == 201) {
-      return jsonDecode(res.body)['id'];
-    }
+    if (res.statusCode == 201) return jsonDecode(res.body)['id'];
     throw _errorDesdeRespuesta(res);
   }
 

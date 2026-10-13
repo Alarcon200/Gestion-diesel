@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import 'login_screen.dart';
-import 'dashboard_screen.dart';
+import 'services/api_service.dart';
+import 'pantallas/login_screen.dart';
+import 'pantallas/dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ApiService.cargarToken();
+  await ApiService.cargarSesion();
   runApp(const GestionDieselApp());
 }
 

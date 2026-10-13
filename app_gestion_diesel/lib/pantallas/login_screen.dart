@@ -19,10 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await ApiService.login(_emailController.text.trim(), _passwordController.text);
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

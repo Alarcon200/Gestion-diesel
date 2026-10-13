@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'inspeccion_screen.dart';
 
-class IngresoScreen extends StatefulWidget {
-  const IngresoScreen({super.key});
+class IngresoNuevoScreen extends StatefulWidget {
+  const IngresoNuevoScreen({super.key});
 
   @override
-  State<IngresoScreen> createState() => _IngresoScreenState();
+  State<IngresoNuevoScreen> createState() => _IngresoNuevoScreenState();
 }
 
-class _IngresoScreenState extends State<IngresoScreen> {
+class _IngresoNuevoScreenState extends State<IngresoNuevoScreen> {
   List<dynamic> _vehiculos = [];
   int? _vehiculoSeleccionado;
   final _conductorCtrl = TextEditingController();
@@ -71,7 +71,9 @@ class _IngresoScreenState extends State<IngresoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_cargando) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_cargando) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     if (_vehiculos.isEmpty) {
       return Scaffold(

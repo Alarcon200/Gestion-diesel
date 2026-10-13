@@ -45,11 +45,7 @@ class Dashboard extends Component
             ->take(5)
             ->get();
 
-        return view('livewire.dashboard', [
-            'ordenesEnProceso' => $ordenesEnProceso,
-            'cotizacionesPendientes' => $cotizacionesPendientes,
-            'ingresosSemana' => $ingresosSemana,
-            'dineroAprobadoSemana' => $dineroAprobadoSemana,
+        return view('livewire.dashboard',[
             'ultimasCotizaciones' => $ultimasCotizaciones,
         ])->layout('layouts.app');
     }
