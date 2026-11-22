@@ -12,43 +12,43 @@ class Login extends Component
     public $password = '';
     public $error = '';
 
-    
-public function ingresar()
-{
-    $this->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+    public function ingresar()
+    {
+        $this->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    $usuario = Usuario::with('rol')
-        ->where('email', trim($this->email))
-        ->first();
+        // El correo se compara sin importar mayúsculas o minúsculas
+        $usuario = Usuario::with('rol')
+            ->whereRaw('lower(email) = ?', [mb_strtolower(trim($this->email))])
+            ->first();
 
-    if (!$usuario || !Hash::check($this->password, $usuario->password)) {
-        $this->error = 'Credenciales incorrectas.';
-        return;
+        if (!$usuario || !Hash::check($this->password, $usuario->password)) {
+            $this->error = 'Credenciales incorrectas.';
+            return;
+        }
+
+        if (!$usuario->activo) {
+            $this->error = 'Este usuario está desactivado.';
+            return;
+        }
+
+        if (!$usuario->rol) {
+            $this->error = 'El usuario no tiene un rol asignado.';
+            return;
+        }
+
+        session()->regenerate();
+
+        session([
+            'usuario_id' => $usuario->id,
+            'usuario_nombre' => $usuario->nombre . ' ' . $usuario->apellido,
+            'usuario_rol' => trim($usuario->rol->nombre),
+        ]);
+
+        return redirect('/panel');
     }
-
-    if (!$usuario->activo) {
-        $this->error = 'Este usuario está desactivado.';
-        return;
-    }
-
-    if (!$usuario->rol) {
-        $this->error = 'El usuario no tiene un rol asignado.';
-        return;
-    }
-
-    session()->regenerate();
-
-    session([
-        'usuario_id' => $usuario->id,
-        'usuario_nombre' => $usuario->nombre . ' ' . $usuario->apellido,
-        'usuario_rol' => trim($usuario->rol->nombre),
-    ]);
-
-    return redirect('/panel');
-}
 
     public function render()
     {

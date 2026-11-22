@@ -52,11 +52,56 @@ class Ingresos extends Component
         if (!session('usuario_id')) {
             return redirect('/login');
         }
+
+        $rol = $this->rolActual();
+        if (!in_array($rol, ['administrador', 'jefe de taller', 'contabilidad'])) {
+            return redirect('/panel');
+        }
+
         $this->fecha_ingreso = now()->format('Y-m-d\TH:i');
+    }
+
+    private function rolActual(): string
+    {
+        return mb_strtolower(trim((string) session('usuario_rol')));
+    }
+
+    // Contabilidad solo consulta; Administrador y Jefe de taller pueden modificar
+    private function puedeEditar(): bool
+    {
+        if (in_array($this->rolActual(), ['administrador', 'jefe de taller'])) {
+            return true;
+        }
+        session()->flash('mensaje_estado', 'No tienes permiso para realizar esta acción.');
+        return false;
+    }
+
+    // Número ST e informes: Administrador, Jefe de taller y Contabilidad (secretaria)
+    private function puedeGestionarDocumentos(): bool
+    {
+        if (in_array($this->rolActual(), ['administrador', 'jefe de taller', 'contabilidad'])) {
+            return true;
+        }
+        session()->flash('mensaje_estado', 'No tienes permiso para realizar esta acción.');
+        return false;
+    }
+
+    // Administrador, Jefe de taller y Contabilidad (secretaria) pueden cambiar el estado
+    private function puedeCambiarEstado(): bool
+    {
+        if (in_array($this->rolActual(), ['administrador', 'jefe de taller', 'contabilidad'])) {
+            return true;
+        }
+        session()->flash('mensaje_estado', 'No tienes permiso para realizar esta acción.');
+        return false;
     }
 
     public function nuevo()
     {
+        if (!$this->puedeEditar()) {
+            return;
+        }
+
         $this->resetForm();
         $this->fecha_ingreso = now()->format('Y-m-d\TH:i');
         $this->mostrar_formulario = true;
@@ -64,6 +109,10 @@ class Ingresos extends Component
 
     public function guardar()
     {
+        if (!$this->puedeEditar()) {
+            return;
+        }
+
         $this->validate();
 
         $ingreso = Ingreso::create([
@@ -84,6 +133,9 @@ class Ingresos extends Component
             'fecha' => now(),
         ]);
 
+        // La orden se crea desde el ingreso para poder asignar mecánico de una vez
+        Orden::obtenerOCrearParaIngreso($ingreso->id, session('usuario_id'));
+
         $this->resetForm();
         $this->mostrar_formulario = false;
     }
@@ -101,6 +153,10 @@ class Ingresos extends Component
 
     public function cambiarEstado($ingresoId, $nuevoEstado)
     {
+        if (!$this->puedeCambiarEstado()) {
+            return;
+        }
+
         if (!array_key_exists($nuevoEstado, $this->estados)) {
             return;
         }
@@ -130,6 +186,10 @@ class Ingresos extends Component
 
     public function mostrarAsignarOrden($ingresoId)
     {
+        if (!$this->puedeGestionarDocumentos()) {
+            return;
+        }
+
         $this->asignando_orden_id = $ingresoId;
         $this->numero_orden_sufijo = '';
     }
@@ -142,13 +202,20 @@ class Ingresos extends Component
 
     public function guardarNumeroOrden()
     {
+        if (!$this->puedeGestionarDocumentos()) {
+            return;
+        }
+
         $this->validate([
             'numero_orden_sufijo' => 'required|string|max:20',
         ]);
 
         $numeroCompleto = 'ST' . $this->numero_orden_sufijo;
 
-        $existe = Orden::where('numero_orden', $numeroCompleto)->exists();
+        // Se permite repetir el número de la misma orden (al corregirlo); no el de otra
+        $existe = Orden::where('numero_orden', $numeroCompleto)
+            ->where('ingreso_id', '!=', $this->asignando_orden_id)
+            ->exists();
         if ($existe) {
             $this->addError('numero_orden_sufijo', 'Ese numero de orden ya esta en uso.');
             return;
@@ -168,6 +235,10 @@ class Ingresos extends Component
 
     public function generarInforme($ingresoId)
     {
+        if (!$this->puedeGestionarDocumentos()) {
+            return;
+        }
+
         $orden = Orden::obtenerOCrearParaIngreso($ingresoId, session('usuario_id'));
 
         InformeServicio::create([
@@ -215,6 +286,7 @@ class Ingresos extends Component
         return view('livewire.ingresos', [
             'ingresos' => $query->get(),
             'vehiculos' => Vehiculo::with('cliente')->orderBy('placa')->get(),
+            'puedeGestionar' => in_array($this->rolActual(), ['administrador', 'jefe de taller', 'contabilidad']),
         ])->layout('layouts.app');
     }
 }

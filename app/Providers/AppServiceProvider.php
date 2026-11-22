@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Ingreso;
+use App\Models\Orden;
+use App\Observers\IngresoObserver;
+use App\Observers\OrdenObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Notificaciones automáticas (ingresos, cambios de estado, asignaciones)
+        Ingreso::observe(IngresoObserver::class);
+        Orden::observe(OrdenObserver::class);
     }
 }

@@ -27,6 +27,55 @@ class Orden extends Model
     ]);
 }
 
+    public function ingreso()
+    {
+        return $this->belongsTo(Ingreso::class);
+    }
+
+    /**
+     * El mecánico cambia el estado de SU orden y el vehículo (ingreso) se actualiza solo,
+     * para que la tabla del jefe y de la secretaria lo muestre de inmediato.
+     *   en_reparacion -> el vehículo pasa a "En reparación"
+     *   finalizada    -> el vehículo pasa a "Pendiente de informe"
+     */
+    public function cambiarEstadoPorMecanico(string $estado, int $usuarioId): void
+    {
+        $this->estado = $estado;
+
+        if ($estado === 'finalizada') {
+            $this->fecha_finalizacion = now();
+        }
+
+        $this->save();
+
+        $mapa = [
+            'en_reparacion' => 'en_reparacion',
+            'finalizada' => 'pendiente_informe',
+        ];
+
+        if (!isset($mapa[$estado])) {
+            return;
+        }
+
+        $ingreso = $this->ingreso;
+        $nuevo = $mapa[$estado];
+
+        if (!$ingreso || $ingreso->estado === 'salio_taller' || $ingreso->estado === $nuevo) {
+            return;
+        }
+
+        $anterior = $ingreso->estado;
+        $ingreso->update(['estado' => $nuevo]);
+
+        HistorialEstadoIngreso::create([
+            'ingreso_id' => $ingreso->id,
+            'estado_anterior' => $anterior,
+            'estado_nuevo' => $nuevo,
+            'usuario_id' => $usuarioId,
+            'fecha' => now(),
+        ]);
+    }
+
     public function vehiculo()
     {
         return $this->belongsTo(Vehiculo::class);

@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import '../tema.dart';
+import '../widgets/fotos_con_nota.dart';
 
 class ReparacionScreen extends StatefulWidget {
   final int ingresoId;
@@ -14,13 +14,17 @@ class ReparacionScreen extends StatefulWidget {
 class _ReparacionScreenState extends State<ReparacionScreen> {
   final _trabajoCtrl = TextEditingController();
   final _observacionesCtrl = TextEditingController();
-  final List<File> _fotos = [];
+  final List<FotoPendiente> _fotos = [];
   bool _guardando = false;
 
-  Future<void> _tomarFoto() async {
-    final picker = ImagePicker();
-    final foto = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
-    if (foto != null) setState(() => _fotos.add(File(foto.path)));
+  @override
+  void dispose() {
+    _trabajoCtrl.dispose();
+    _observacionesCtrl.dispose();
+    for (final f in _fotos) {
+      f.liberar();
+    }
+    super.dispose();
   }
 
   Future<void> _guardar() async {
@@ -41,7 +45,7 @@ class _ReparacionScreenState extends State<ReparacionScreen> {
     try {
       final fotosIds = <int>[];
       for (final foto in _fotos) {
-        final id = await ApiService.subirFoto(foto, descripcion: 'Reparacion');
+        final id = await ApiService.subirFoto(foto.archivo, descripcion: foto.texto);
         fotosIds.add(id);
       }
 
@@ -85,45 +89,11 @@ class _ReparacionScreenState extends State<ReparacionScreen> {
           ),
           const SizedBox(height: 20),
           const Text('Fotos de evidencia (obligatorio al menos 1)', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ..._fotos.map((f) => Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(f, width: 90, height: 90, fit: BoxFit.cover),
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () => setState(() => _fotos.remove(f)),
-                          child: const CircleAvatar(
-                            radius: 10,
-                            backgroundColor: Colors.red,
-                            child: Icon(Icons.close, size: 14, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )),
-              InkWell(
-                onTap: _tomarFoto,
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.camera_alt, size: 32),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 4),
+          const Text('Escribe una nota debajo de cada foto: qué se arregló o cambió.',
+              style: TextStyle(color: Marca.gris)),
+          const SizedBox(height: 10),
+          FotosConNota(fotos: _fotos),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,

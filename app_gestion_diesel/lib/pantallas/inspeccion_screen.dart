@@ -1,7 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import '../tema.dart';
+import '../widgets/fotos_con_nota.dart';
 import 'dashboard_screen.dart';
 
 class InspeccionScreen extends StatefulWidget {
@@ -29,15 +29,16 @@ class _InspeccionScreenState extends State<InspeccionScreen> {
   ];
   String _nivelCombustible = 'Medio';
   final _observacionesCtrl = TextEditingController();
-  final List<File> _fotos = [];
+  final List<FotoPendiente> _fotos = [];
   bool _guardando = false;
 
-  Future<void> _tomarFoto() async {
-    final picker = ImagePicker();
-    final foto = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
-    if (foto != null) {
-      setState(() => _fotos.add(File(foto.path)));
+  @override
+  void dispose() {
+    _observacionesCtrl.dispose();
+    for (final f in _fotos) {
+      f.liberar();
     }
+    super.dispose();
   }
 
   Future<void> _guardar() async {
@@ -46,7 +47,7 @@ class _InspeccionScreenState extends State<InspeccionScreen> {
       // 1. Subir cada foto y recolectar sus ids
       final fotosIds = <int>[];
       for (final foto in _fotos) {
-        final id = await ApiService.subirFoto(foto, descripcion: 'Inspeccion de ingreso');
+        final id = await ApiService.subirFoto(foto.archivo, descripcion: foto.texto);
         fotosIds.add(id);
       }
 
@@ -116,30 +117,13 @@ class _InspeccionScreenState extends State<InspeccionScreen> {
             maxLines: 3,
           ),
           const SizedBox(height: 24),
-          const Text('Fotos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ..._fotos.map((f) => ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(f, width: 90, height: 90, fit: BoxFit.cover),
-                  )),
-              InkWell(
-                onTap: _tomarFoto,
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.camera_alt, size: 32),
-                ),
-              ),
-            ],
-          ),
+          const Text('Fotos del estado en que llega el vehículo',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          const Text('Toma fotos de los daños que ya trae y escribe una nota debajo de cada una.',
+              style: TextStyle(color: Marca.gris)),
+          const SizedBox(height: 10),
+          FotosConNota(fotos: _fotos),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,

@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Ingreso;
+use App\Models\HistorialEstadoIngreso;
+use App\Models\Orden;
 
 class IngresoController extends Controller
 {
+    private const ESTADOS = 'en_espera_diagnostico,en_reparacion,pendiente_cotizacion,pendiente_informe,pendiente_prefactura,orden_enviada,salio_taller';
+
     public function index()
     {
-        return Ingreso::with('vehiculo.cliente', 'usuario')
+        return Ingreso::with('vehiculo.cliente', 'usuario', 'ordenes')
             ->orderByDesc('fecha_ingreso')
             ->get();
     }
@@ -26,11 +30,22 @@ class IngresoController extends Controller
         ]);
 
         $data['usuario_id'] = $request->user()->id;
-        $data['estado'] = 'en_taller';
+        $data['estado'] = 'en_espera_diagnostico';
 
         $ingreso = Ingreso::create($data);
 
-        return response()->json($ingreso->load('vehiculo.cliente', 'usuario'), 201);
+        HistorialEstadoIngreso::create([
+            'ingreso_id' => $ingreso->id,
+            'estado_anterior' => null,
+            'estado_nuevo' => 'en_espera_diagnostico',
+            'usuario_id' => $request->user()->id,
+            'fecha' => now(),
+        ]);
+
+        // La orden se crea desde el ingreso para poder asignar mecánico de una vez
+        Orden::obtenerOCrearParaIngreso($ingreso->id, $request->user()->id);
+
+        return response()->json($ingreso->load('vehiculo.cliente', 'usuario', 'ordenes'), 201);
     }
 
     public function show(Ingreso $ingreso)
@@ -39,24 +54,45 @@ class IngresoController extends Controller
     }
 
     public function update(Request $request, Ingreso $ingreso)
-{
-    $data = $request->validate([
-        'conductor' => 'nullable|string|max:120',
-        'motivo' => 'sometimes|required|string|max:200',
-        'kilometraje' => 'nullable|integer',
-        'estado' => 'sometimes|required|in:en_espera_diagnostico,en_reparacion,pendiente_cotizacion,pendiente_informe,pendiente_prefactura,orden_enviada,salio_taller',
-        'observaciones' => 'nullable|string',
-        'fecha_salida' => 'nullable|date',
-    ]);
+    {
+        $data = $request->validate([
+            'conductor' => 'nullable|string|max:120',
+            'motivo' => 'sometimes|required|string|max:200',
+            'kilometraje' => 'nullable|integer',
+            'observaciones' => 'nullable|string',
+        ]);
 
-    if (($data['estado'] ?? null) === 'salio_taller' && empty($data['fecha_salida'])) {
-        $data['fecha_salida'] = now();
+        $ingreso->update($data);
+
+        return $ingreso->load('vehiculo.cliente', 'usuario');
     }
 
-    $ingreso->update($data);
+    // Cambiar solo el estado del vehículo (Administrador, Jefe de taller y Contabilidad)
+    public function cambiarEstado(Request $request, Ingreso $ingreso)
+    {
+        $data = $request->validate([
+            'estado' => 'required|in:' . self::ESTADOS,
+        ]);
 
-    return $ingreso->load('vehiculo.cliente', 'usuario');
-}
+        $anterior = $ingreso->estado;
+
+        if ($anterior !== $data['estado']) {
+            $ingreso->update([
+                'estado' => $data['estado'],
+                'fecha_salida' => $data['estado'] === 'salio_taller' ? now() : null,
+            ]);
+
+            HistorialEstadoIngreso::create([
+                'ingreso_id' => $ingreso->id,
+                'estado_anterior' => $anterior,
+                'estado_nuevo' => $data['estado'],
+                'usuario_id' => $request->user()->id,
+                'fecha' => now(),
+            ]);
+        }
+
+        return $ingreso->load('vehiculo.cliente', 'usuario', 'ordenes');
+    }
 
     public function destroy(Ingreso $ingreso)
     {

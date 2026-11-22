@@ -4,6 +4,45 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-display: 'Barlow Condensed', 'Barlow', ui-sans-serif, system-ui, sans-serif;
+
+    /* Colores tomados del logo de I.S.A. y de la placa amarilla de carga */
+    --color-isa-blue: #2f66d6;
+    --color-isa-red: #cf2027;
+    --color-placa: #f6c90e;
+    --color-concreto: #e9ebee;
+    --color-tinta: #1c2330;
+}
+
+/* Placa de vehículo de carga (fondo amarillo, letras negras) */
+.placa {
+    display: inline-block;
+    padding: 0.1rem 0.7rem;
+    background: var(--color-placa);
+    color: #000;
+    border: 2px solid #000;
+    border-radius: 0.4rem;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.6;
+    text-transform: uppercase;
+}
+
+/* Etapas del taller: una sola línea de flujo con puntas de flecha en pantallas anchas */
+@media (min-width: 768px) {
+    .etapa {
+        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%);
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+    .etapa:first-child {
+        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%);
+        padding-left: 1.25rem;
+    }
+    .etapa + .etapa {
+        margin-left: -8px;
+    }
 }

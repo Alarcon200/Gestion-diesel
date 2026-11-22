@@ -5,6 +5,7 @@ use Livewire\Component;
 use App\Models\Ingreso;
 use App\Models\Orden;
 use App\Models\Diagnostico;
+use App\Models\HistorialEstadoIngreso;
 use Illuminate\Validation\ValidationException;
 
 class Panel extends Component
@@ -42,15 +43,70 @@ class Panel extends Component
             ->where('mecanico_id', session('usuario_id'))
             ->firstOrFail();
 
-        $orden->estado = $estado;
-
-        if ($estado === 'finalizada') {
-            $orden->fecha_finalizacion = now();
-        }
-
-        $orden->save();
+        // Actualiza la orden y también el estado del vehículo en la tabla del taller
+        $orden->cambiarEstadoPorMecanico($estado, (int) session('usuario_id'));
 
         $this->mensaje = 'El estado de la orden se actualizó correctamente.';
+    }
+
+    // Etapas que se muestran en el panel (el orden es el del flujo del taller)
+    protected function etapas(): array
+    {
+        return [
+            'en_espera_diagnostico' => ['label' => 'Espera de diagnóstico', 'borde' => 'border-slate-400', 'chip' => 'bg-slate-100 text-slate-700 border-slate-300'],
+            'en_reparacion' => ['label' => 'En reparación', 'borde' => 'border-isa-blue', 'chip' => 'bg-blue-50 text-blue-800 border-blue-200'],
+            'pendiente_cotizacion' => ['label' => 'Pendiente de cotización', 'borde' => 'border-amber-500', 'chip' => 'bg-amber-50 text-amber-800 border-amber-200'],
+            'pendiente_informe' => ['label' => 'Pendiente de informe', 'borde' => 'border-violet-500', 'chip' => 'bg-violet-50 text-violet-800 border-violet-200'],
+            'pendiente_prefactura' => ['label' => 'Pendiente de prefactura', 'borde' => 'border-pink-500', 'chip' => 'bg-pink-50 text-pink-800 border-pink-200'],
+            'orden_enviada' => ['label' => 'Orden enviada', 'borde' => 'border-indigo-500', 'chip' => 'bg-indigo-50 text-indigo-800 border-indigo-200'],
+        ];
+    }
+
+    protected function todosLosEstados(): array
+    {
+        return $this->etapas() + [
+            'salio_taller' => ['label' => 'Salió del taller', 'borde' => 'border-green-600', 'chip' => 'bg-green-50 text-green-800 border-green-200'],
+        ];
+    }
+
+    // Administrador, Jefe de taller y Contabilidad (secretaria) pueden cambiar el estado
+    protected function puedeCambiarEstado(): bool
+    {
+        $rol = mb_strtolower(trim((string) session('usuario_rol')));
+        return in_array($rol, ['administrador', 'jefe de taller', 'contabilidad']);
+    }
+
+    public function cambiarEstado($ingresoId, $nuevoEstado)
+    {
+        if (!$this->puedeCambiarEstado()) {
+            abort(403);
+        }
+
+        if (!array_key_exists($nuevoEstado, $this->todosLosEstados())) {
+            return;
+        }
+
+        $ingreso = Ingreso::find($ingresoId);
+        if (!$ingreso || $ingreso->estado === $nuevoEstado) {
+            return;
+        }
+
+        $estadoAnterior = $ingreso->estado;
+
+        $ingreso->update([
+            'estado' => $nuevoEstado,
+            'fecha_salida' => $nuevoEstado === 'salio_taller' ? now() : null,
+        ]);
+
+        HistorialEstadoIngreso::create([
+            'ingreso_id' => $ingreso->id,
+            'estado_anterior' => $estadoAnterior,
+            'estado_nuevo' => $nuevoEstado,
+            'usuario_id' => session('usuario_id'),
+            'fecha' => now(),
+        ]);
+
+        $this->mensaje = 'Estado actualizado: ' . $this->todosLosEstados()[$nuevoEstado]['label'] . '.';
     }
 
     public function reportarFalla()
@@ -131,30 +187,27 @@ class Panel extends Component
             ))->layout('layouts.app');
         }
 
-        $enTaller = Ingreso::whereNotIn('estado', [
-            'entregado', 'entregada', 'salido', 'finalizado', 'finalizada'
-        ])->get();
+        // Vehículos que siguen dentro del taller (los que ya salieron no cuentan)
+        $enTaller = Ingreso::with('vehiculo.cliente', 'ordenes')
+            ->whereNotIn('estado', [
+                'salio_taller', 'entregado', 'entregada', 'salido', 'finalizado', 'finalizada',
+            ])
+            ->orderByDesc('fecha_ingreso')
+            ->get();
 
-        $conteos = [
-            'en_espera_diagnostico' => $enTaller->where('estado', 'en_espera_diagnostico')->count(),
-            'en_reparacion' => $enTaller->where('estado', 'en_reparacion')->count(),
-            'pendiente_cotizacion' => $enTaller->where('estado', 'pendiente_cotizacion')->count(),
-            'pendiente_informe' => $enTaller->where('estado', 'pendiente_informe')->count(),
-            'pendiente_prefactura' => $enTaller->where('estado', 'pendiente_prefactura')->count(),
-            'orden_enviada' => $enTaller->where('estado', 'orden_enviada')->count(),
-        ];
+        $etapas = $this->etapas();
+        $conteos = [];
+        foreach (array_keys($etapas) as $clave) {
+            $conteos[$clave] = $enTaller->where('estado', $clave)->count();
+        }
 
-        return view('livewire.panel', [
+        return view('livewire.panel-taller', [
             'totalEnTaller' => $enTaller->count(),
+            'etapas' => $etapas,
+            'estados' => $this->todosLosEstados(),
             'conteos' => $conteos,
-            'salidosHoy' => 0,
-            'ultimosIngresos' => Ingreso::with('vehiculo.cliente')
-                ->whereNotIn('estado', [
-                    'entregado', 'entregada', 'salido', 'finalizado', 'finalizada'
-                ])
-                ->orderByDesc('fecha_ingreso')
-                ->limit(5)
-                ->get(),
+            'ingresos' => $enTaller,
+            'puedeCambiar' => $this->puedeCambiarEstado(),
         ])->layout('layouts.app');
     }
 }

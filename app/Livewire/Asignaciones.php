@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Ingreso;
 use App\Models\Orden;
 use App\Models\Usuario;
 use Livewire\Component;
@@ -29,6 +30,12 @@ class Asignaciones extends Component
 
     public function render()
     {
+        // Todo vehículo que sigue en el taller debe tener su orden para poder asignarlo
+        Ingreso::where('estado', '!=', 'salio_taller')
+            ->doesntHave('ordenes')
+            ->get()
+            ->each(fn ($ingreso) => Orden::obtenerOCrearParaIngreso($ingreso->id, session('usuario_id')));
+
         $mecanicos = Usuario::where('rol_id', 3)
             ->where('activo', true)
             ->orderBy('nombre')

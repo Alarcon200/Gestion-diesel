@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
+import 'tema.dart';
 import 'pantallas/login_screen.dart';
 import 'pantallas/dashboard_screen.dart';
 
@@ -15,9 +16,9 @@ class GestionDieselApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gestion Diesel',
+      title: 'Gestión Diesel',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      theme: temaApp(),
       home: ApiService.autenticado ? const DashboardScreen() : const LoginScreen(),
     );
   }

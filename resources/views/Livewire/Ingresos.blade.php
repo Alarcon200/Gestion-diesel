@@ -100,10 +100,25 @@
                     <td class="px-4 py-2 font-medium">{{ $ingreso->vehiculo->placa ?? '-' }}</td>
                     <td class="px-4 py-2">{{ $ingreso->vehiculo->cliente->nombre ?? '-' }}</td>
                     <td class="px-4 py-2">
-                        @if($ingreso->ordenes->first()?->numero_orden)
-                            <span class="font-mono text-xs">{{ $ingreso->ordenes->first()->numero_orden }}</span>
+                        @php
+                            // El número ST es el que viene de la cotización; la orden interna (OT-...) se crea sola
+                            $ordenST = $ingreso->ordenes->first(fn ($o) => str_starts_with((string) $o->numero_orden, 'ST'));
+                            $ordenInterna = $ingreso->ordenes->first();
+                        @endphp
+                        @if($ordenST)
+                            <span class="font-mono text-xs font-bold">{{ $ordenST->numero_orden }}</span>
+                            @if($puedeGestionar)
+                                <button wire:click="mostrarAsignarOrden({{ $ingreso->id }})" class="ml-1 text-xs text-slate-400 hover:underline">Cambiar</button>
+                            @endif
                         @else
-                            <button wire:click="mostrarAsignarOrden({{ $ingreso->id }})" class="text-blue-600 hover:underline text-xs">Ingresar numero de orden</button>
+                            @if($puedeGestionar)
+                                <button wire:click="mostrarAsignarOrden({{ $ingreso->id }})" class="text-blue-600 hover:underline text-xs font-medium">Ingresar número ST</button>
+                            @else
+                                <span class="text-xs font-medium text-amber-600">Sin ST</span>
+                            @endif
+                            @if($ordenInterna)
+                                <span class="block font-mono text-[10px] text-slate-400">{{ $ordenInterna->numero_orden }}</span>
+                            @endif
                         @endif
                     </td>
                     <td class="px-4 py-2">{{ \Carbon\Carbon::parse($ingreso->fecha_ingreso)->format('d/m/Y H:i') }}</td>
@@ -127,7 +142,7 @@
                         <button wire:click="verHistorial({{ $ingreso->id }})" class="text-slate-600 hover:underline text-xs">
                             {{ $viendo_historial_id === $ingreso->id ? 'Ocultar historial' : 'Ver historial' }}
                         </button>
-                        @if($ingreso->estado === 'pendiente_informe')
+                        @if($ingreso->estado === 'pendiente_informe' && $puedeGestionar)
                             <button wire:click="generarInforme({{ $ingreso->id }})" wire:confirm="¿Generar el informe de este vehiculo?" class="text-purple-600 hover:underline text-xs">
                                 Generar informe
                             </button>

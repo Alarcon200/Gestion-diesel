@@ -4,8 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2/api';
-
+  // Emulador de Android: http://10.0.2.2/api (valor por defecto).
+  // Celular real: flutter run --dart-define=API_URL=http://IP-DE-TU-MAC/api
+ static const String baseUrl = String.fromEnvironment(
+  'API_URL',
+  defaultValue: 'http://192.168.1.9/api',
+);
   static String? _token;
   static String? _rol;
   static String? _nombre;
@@ -94,12 +98,28 @@ class ApiService {
     request.headers['Accept'] = 'application/json';
     if (_token != null) request.headers['Authorization'] = 'Bearer $_token';
     request.files.add(await http.MultipartFile.fromPath('foto', archivo.path));
-    if (descripcion != null) request.fields['descripcion'] = descripcion;
+    if (descripcion != null && descripcion.isNotEmpty) request.fields['descripcion'] = descripcion;
 
     final streamed = await request.send();
     final res = await http.Response.fromStream(streamed);
 
     if (res.statusCode == 201) return jsonDecode(res.body)['id'];
+    throw _errorDesdeRespuesta(res);
+  }
+
+  /// Sube una foto directamente al ingreso (vehículo en el taller), con su nota.
+  static Future<Map<String, dynamic>> subirFotoIngreso(int ingresoId, File archivo, {String? descripcion}) async {
+    final uri = Uri.parse('$baseUrl/ingresos/$ingresoId/fotos');
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Accept'] = 'application/json';
+    if (_token != null) request.headers['Authorization'] = 'Bearer $_token';
+    request.files.add(await http.MultipartFile.fromPath('foto', archivo.path));
+    if (descripcion != null && descripcion.isNotEmpty) request.fields['descripcion'] = descripcion;
+
+    final streamed = await request.send().timeout(const Duration(seconds: 90));
+    final res = await http.Response.fromStream(streamed);
+
+    if (res.statusCode == 201) return Map<String, dynamic>.from(jsonDecode(res.body));
     throw _errorDesdeRespuesta(res);
   }
 

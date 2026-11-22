@@ -1,117 +1,144 @@
 <div>
-    <div class="flex justify-between items-center mb-6">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Gestión de Personal</h1>
-            <p class="text-sm text-gray-500">Administra los accesos al sistema</p>
+            <h1 class="font-display text-4xl font-bold uppercase tracking-wide">Personal</h1>
+            <p class="text-sm text-slate-600">Quién puede entrar al sistema y con qué rol</p>
         </div>
-        <button wire:click="nuevo" class="bg-slate-800 text-white px-4 py-2 rounded hover:bg-slate-700 transition">
-            + Nuevo Usuario
+        <button wire:click="nuevo" class="rounded bg-black px-4 py-2.5 font-semibold text-white hover:bg-slate-800">
+            + Nuevo usuario
         </button>
     </div>
 
-    <!-- Mensaje de éxito -->
     @if (session()->has('mensaje'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm">
+        <div class="mb-4 border-l-8 border-green-600 bg-green-50 p-4 text-sm font-medium text-green-800">
             {{ session('mensaje') }}
         </div>
     @endif
 
-    <!-- Formulario de Creación -->
-    @if($mostrar_formulario)
-    <div class="bg-white p-6 rounded shadow mb-6 border-t-4 border-blue-500">
-        <h2 class="font-semibold text-lg mb-4 text-gray-700">Registrar nuevo integrante</h2>
-        <form wire:submit="guardar">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1 text-gray-600">Nombre</label>
-                    <input type="text" wire:model="nombre" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                    @error('nombre') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div class="mb-4">
-                  <label class="block text-sm font-medium mb-1 text-gray-600">Apellidos</label>
-                  <input type="text" wire:model="apellido" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                  @error('apellido') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1 text-gray-600">Correo Electrónico (Usuario)</label>
-                    <input type="email" wire:model="email" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                    @error('email') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1 text-gray-600">Contraseña de acceso</label>
-                    <input type="password" wire:model="password" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                    @error('password') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1 text-gray-600">Rol en el Taller</label>
-                    <<select wire:model="rol" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300">
-                      <option value="">-- Selecciona un rol --</option>
-                      <option value="1">Administrador</option>
-                      <option value="2">Jefe de Taller</option>
-                      <option value="3">Contadora</option>
-                      <option value="4">Mecánico</option>
-                      <option value="5">Mensajero</option>
-                   </select>
-                    @error('rol') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                </div>
-
-            </div>
-
-            <div class="flex gap-3 mt-4">
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition shadow">
-                    Guardar Usuario
-                </button>
-                <button type="button" wire:click="cancelar" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 transition">
-                    Cancelar
-                </button>
-            </div>
-        </form>
-    </div>
+    @if (session()->has('error'))
+        <div class="mb-4 border-l-8 border-isa-red bg-red-50 p-4 text-sm font-medium text-red-800">
+            {{ session('error') }}
+        </div>
     @endif
 
-    <!-- Tabla de Usuarios Activos -->
-    <div class="bg-white rounded shadow overflow-hidden">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-slate-100 text-gray-600 uppercase text-xs">
+    @if($mostrar_formulario)
+        <div class="mb-6 border border-slate-300 border-t-4 border-t-isa-blue bg-white p-6">
+            <h2 class="mb-4 text-lg font-bold">Registrar nuevo integrante</h2>
+            <form wire:submit="guardar">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">Nombre</label>
+                        <input type="text" wire:model="nombre" class="w-full rounded border border-slate-300 px-3 py-2 focus:border-isa-blue focus:outline-none">
+                        @error('nombre') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">Apellidos</label>
+                        <input type="text" wire:model="apellido" class="w-full rounded border border-slate-300 px-3 py-2 focus:border-isa-blue focus:outline-none">
+                        @error('apellido') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">Correo electrónico (usuario)</label>
+                        <input type="email" wire:model="email" class="w-full rounded border border-slate-300 px-3 py-2 focus:border-isa-blue focus:outline-none">
+                        @error('email') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-slate-700">Contraseña de acceso</label>
+                        <input type="password" wire:model="password" class="w-full rounded border border-slate-300 px-3 py-2 focus:border-isa-blue focus:outline-none">
+                        @error('password') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-1 block text-sm font-medium text-slate-700">Rol en el taller</label>
+                        <select wire:model="rol" class="w-full rounded border border-slate-300 bg-white px-3 py-2 focus:border-isa-blue focus:outline-none">
+                            <option value="">-- Selecciona un rol --</option>
+                            @foreach($roles as $r)
+                                <option value="{{ $r->id }}">{{ $r->nombre }}@if($r->nombre === 'Contabilidad') (secretaria)@endif</option>
+                            @endforeach
+                        </select>
+                        @error('rol') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="mt-5 flex gap-3">
+                    <button type="submit" class="rounded bg-isa-blue px-6 py-2 font-semibold text-white hover:bg-blue-700">
+                        Guardar usuario
+                    </button>
+                    <button type="button" wire:click="cancelar" class="rounded bg-slate-200 px-6 py-2 font-semibold text-slate-700 hover:bg-slate-300">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    @php
+        $colores = [
+            'Administrador' => 'bg-purple-100 text-purple-800 border-purple-300',
+            'Jefe de taller' => 'bg-blue-100 text-blue-800 border-blue-300',
+            'Mecánico' => 'bg-orange-100 text-orange-800 border-orange-300',
+            'Contabilidad' => 'bg-green-100 text-green-800 border-green-300',
+            'Mensajero' => 'bg-yellow-100 text-yellow-800 border-yellow-300',
+        ];
+    @endphp
+
+    <div class="overflow-x-auto border border-slate-300 bg-white">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
-                    <th class="px-6 py-3 font-semibold">Nombre</th>
-                    <th class="px-6 py-3 font-semibold">Correo / Usuario</th>
-                    <th class="px-6 py-3 font-semibold">Rol</th>
+                    <th class="px-5 py-3 font-semibold">Nombre</th>
+                    <th class="px-5 py-3 font-semibold">Correo / usuario</th>
+                    <th class="px-5 py-3 font-semibold">Rol</th>
+                    <th class="px-5 py-3 font-semibold">Estado</th>
+                    <th class="px-5 py-3 text-right font-semibold">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody class="divide-y divide-slate-200">
                 @forelse($usuarios as $user)
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 font-medium text-gray-800">{{ $user->nombre }}</td>
-                    <td class="px-6 py-4 text-gray-600">{{ $user->email }}</td>
-                    
-                    <!-- 👉 AQUÍ PEGAS EXACTAMENTE EL CÓDIGO -->
-                    <td class="px-6 py-4">
-                        @if($user->rol_id == 1)
-                            <span class="px-2 py-1 text-xs rounded-full font-semibold bg-purple-100 text-purple-700">Administrador</span>
-                        @elseif($user->rol_id == 2)
-                            <span class="px-2 py-1 text-xs rounded-full font-semibold bg-blue-100 text-blue-700">Jefe de Taller</span>
-                        @elseif($user->rol_id == 3)
-                            <span class="px-2 py-1 text-xs rounded-full font-semibold bg-green-100 text-green-700">Contadora</span>
-                        @elseif($user->rol_id == 4)
-                            <span class="px-2 py-1 text-xs rounded-full font-semibold bg-orange-100 text-orange-700">Mecánico</span>
-                        @elseif($user->rol_id == 5)
-                            <span class="px-2 py-1 text-xs rounded-full font-semibold bg-yellow-100 text-yellow-700">Mensajero</span>
-                        @else
-                            <span class="px-2 py-1 text-xs rounded-full font-semibold bg-gray-100 text-gray-700">Sin asignar</span>
-                        @endif
-                    </td>
-                    <!-- TERMINA EL CÓDIGO NUEVO -->
-
-                </tr>
+                    @php $esYo = (int) $user->id === (int) session('usuario_id'); @endphp
+                    <tr class="hover:bg-slate-50 {{ $user->activo ? '' : 'bg-slate-50 text-slate-400' }}" wire:key="usuario-{{ $user->id }}">
+                        <td class="px-5 py-3.5 font-semibold">
+                            {{ $user->nombre }} {{ $user->apellido }}
+                            @if($esYo) <span class="ml-1 text-xs font-medium text-slate-500">(tú)</span> @endif
+                        </td>
+                        <td class="px-5 py-3.5">{{ $user->email }}</td>
+                        <td class="px-5 py-3.5">
+                            <span class="border px-2 py-1 text-xs font-bold uppercase tracking-wide {{ $colores[$user->rol->nombre ?? ''] ?? 'bg-slate-100 text-slate-700 border-slate-300' }}">
+                                {{ $user->rol->nombre ?? 'Sin rol' }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5">
+                            @if($user->activo)
+                                <span class="font-semibold text-green-700">Activo</span>
+                            @else
+                                <span class="font-semibold text-slate-500">Desactivado</span>
+                            @endif
+                        </td>
+                        <td class="px-5 py-3.5 text-right">
+                            @if(!$esYo)
+                                <button type="button" wire:click="alternarActivo({{ $user->id }})"
+                                        class="mr-2 border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                                    {{ $user->activo ? 'Desactivar' : 'Activar' }}
+                                </button>
+                                <button type="button" wire:click="eliminar({{ $user->id }})"
+                                        wire:confirm="¿Eliminar a {{ $user->nombre }} {{ $user->apellido }}? Esta acción no se puede deshacer."
+                                        class="border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">
+                                    Eliminar
+                                </button>
+                            @endif
+                        </td>
+                    </tr>
                 @empty
-                <tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">No hay usuarios registrados en el sistema</td></tr>
+                    <tr><td colspan="5" class="px-5 py-8 text-center text-slate-500">No hay usuarios registrados en el sistema</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    <p class="mt-3 text-xs text-slate-500">
+        Si un usuario ya tiene trabajos, ingresos o informes registrados no se puede eliminar (se perdería el historial):
+        usa "Desactivar" y no podrá volver a entrar.
+    </p>
 </div>
